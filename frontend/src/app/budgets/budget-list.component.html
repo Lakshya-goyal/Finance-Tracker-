@@ -1,0 +1,167 @@
+<div class="container">
+  <div class="mb-4">
+    <h1>Budgets</h1>
+    <p class="subtitle">Set monthly category budgets and track your spending</p>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div class="budget-layout">
+    <!-- Budget Form -->
+    <div class="card form-card">
+      <h2>{{ editingBudgetId ? 'Edit Budget' : 'Set Monthly Budget' }}</h2>
+      <form [formGroup]="budgetForm" (ngSubmit)="onSubmit()">
+        <!-- Expense Category -->
+        <div class="form-group">
+          <label for="categoryId">Expense Category <span class="required">*</span></label>
+          <select
+            id="categoryId"
+            formControlName="categoryId"
+            [class.is-invalid]="isFieldInvalid('categoryId')"
+          >
+            <option value="">Select an expense category</option>
+            <option *ngFor="let cat of expenseCategories" [value]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('categoryId')" class="error-text">
+            <span>Please select an expense category.</span>
+          </div>
+        </div>
+
+        <!-- Budget Amount -->
+        <div class="form-group">
+          <label for="amount">Budget Amount (₹) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="amount"
+            formControlName="amount"
+            step="0.01"
+            min="0.01"
+            placeholder="e.g. 5000.00"
+            [class.is-invalid]="isFieldInvalid('amount')"
+          />
+          <div *ngIf="isFieldInvalid('amount')" class="error-text">
+            <span *ngIf="budgetForm.get('amount')?.errors?.['required']">Budget amount is required.</span>
+            <span *ngIf="budgetForm.get('amount')?.errors?.['min']">Amount must be greater than 0 (minimum 0.01).</span>
+            <span *ngIf="budgetForm.get('amount')?.errors?.['max']">Amount cannot exceed ₹100,000,000.</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Month -->
+          <div class="form-group">
+            <label for="month">Month <span class="required">*</span></label>
+            <select
+              id="month"
+              formControlName="month"
+              [class.is-invalid]="isFieldInvalid('month')"
+            >
+              <option *ngFor="let m of months" [value]="m.value">
+                {{ m.name }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('month')" class="error-text">
+              <span>Valid month (1-12) is required.</span>
+            </div>
+          </div>
+
+          <!-- Year -->
+          <div class="form-group">
+            <label for="year">Year <span class="required">*</span></label>
+            <input
+              type="number"
+              id="year"
+              formControlName="year"
+              placeholder="e.g. 2026"
+              [class.is-invalid]="isFieldInvalid('year')"
+            />
+            <div *ngIf="isFieldInvalid('year')" class="error-text">
+              <span *ngIf="budgetForm.get('year')?.errors?.['required']">Year is required.</span>
+              <span *ngIf="budgetForm.get('year')?.errors?.['min'] || budgetForm.get('year')?.errors?.['max']">
+                Year must be between 2000 and 2100.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ editingBudgetId ? 'Update Budget' : 'Save Budget' }}</span>
+            <span *ngIf="saving">Saving...</span>
+          </button>
+          <button type="button" class="btn btn-secondary" *ngIf="editingBudgetId" (click)="cancelEdit()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Budgets List -->
+    <div class="card list-card">
+      <h2>Active Budgets</h2>
+
+      <div *ngIf="loading" class="alert alert-info">
+        Loading budgets...
+      </div>
+
+      <div *ngIf="!loading && budgets.length === 0" class="empty-state">
+        <p>No budgets created yet. Set a budget using the form.</p>
+      </div>
+
+      <div *ngIf="!loading && budgets.length > 0" class="budget-items">
+        <div *ngFor="let b of budgets" class="budget-item-card">
+          <div class="flex-between">
+            <div>
+              <h3>{{ b.categoryName }}</h3>
+              <span class="period-text">{{ getMonthName(b.month) }} {{ b.year }}</span>
+            </div>
+            <div class="action-buttons">
+              <button class="btn btn-secondary btn-sm" (click)="onEdit(b)">Edit</button>
+              <button class="btn btn-danger btn-sm" (click)="onDelete(b.id)">Delete</button>
+            </div>
+          </div>
+
+          <div class="budget-stats">
+            <div class="stat-col">
+              <span class="stat-label">Budget</span>
+              <span class="stat-val">₹{{ b.amount | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-col">
+              <span class="stat-label">Spent</span>
+              <span class="stat-val text-danger">₹{{ b.spentAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-col">
+              <span class="stat-label">Remaining</span>
+              <span class="stat-val" [ngClass]="{'text-success': b.remainingAmount >= 0, 'text-danger': b.remainingAmount < 0}">
+                ₹{{ b.remainingAmount | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- HTML Progress Bar -->
+          <div class="progress-bar-container">
+            <div
+              class="progress-bar-fill"
+              [style.width.%]="b.progressPercentage > 100 ? 100 : b.progressPercentage"
+              [ngClass]="{
+                'warning': b.progressPercentage >= 80 && b.progressPercentage < 100,
+                'danger': b.progressPercentage >= 100
+              }"
+            ></div>
+          </div>
+          <div class="flex-between progress-info">
+            <small>{{ b.progressPercentage | number:'1.1-1' }}% of budget used</small>
+            <small *ngIf="b.progressPercentage >= 100" class="text-danger font-semibold">Over Budget!</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

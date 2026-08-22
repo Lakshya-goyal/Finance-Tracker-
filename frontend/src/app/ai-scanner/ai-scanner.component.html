@@ -1,0 +1,276 @@
+<div class="container scanner-container">
+  <!-- Header -->
+  <div class="header-card">
+    <div class="header-badge">✨ Powered by Google Gemini AI</div>
+    <h1>AI Bill & Receipt Scanner</h1>
+    <p class="subtitle">
+      Upload a photo of your receipt or paste an expense message. Gemini AI will instantly extract the merchant, total amount, category, and date. You can review and edit every detail before saving!
+    </p>
+  </div>
+
+  <!-- Error & Success Alerts -->
+  <div *ngIf="errorMessage" class="alert alert-danger mb-3">
+    ⚠️ {{ errorMessage }}
+  </div>
+  <div *ngIf="successMessage" class="alert alert-success mb-3">
+    ✅ {{ successMessage }}
+  </div>
+
+  <!-- STEP 1: Upload or Input Section (visible when not yet scanned or re-scanning) -->
+  <div class="card scan-input-card" *ngIf="!scanSuccess">
+    <!-- Tabs Header -->
+    <div class="scan-tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'image'"
+        (click)="activeTab = 'image'; errorMessage = ''"
+      >
+        📸 Upload Receipt Image
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'text'"
+        (click)="activeTab = 'text'; errorMessage = ''"
+      >
+        📝 Paste Bill Statement / Text
+      </button>
+    </div>
+
+    <!-- Image Upload Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'image'">
+      <div
+        class="drop-zone"
+        [class.dragging]="isDragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        *ngIf="!imagePreviewUrl"
+      >
+        <div class="drop-icon">🧾</div>
+        <h3>Drag & drop your receipt or bill image here</h3>
+        <p class="drop-hint">Supports PNG, JPG, JPEG, WEBP (photos of restaurant bills, grocery receipts, utility invoices)</p>
+        <label class="btn btn-secondary file-upload-btn">
+          <span>📁 Browse Image</span>
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            (change)="onFileSelected($event)"
+            hidden
+          />
+        </label>
+      </div>
+
+      <!-- Image Preview -->
+      <div class="image-preview-wrapper" *ngIf="imagePreviewUrl">
+        <div class="preview-header">
+          <span class="preview-filename">📄 {{ selectedFile?.name }}</span>
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="clearSelectedFile()">
+            ✕ Remove Image
+          </button>
+        </div>
+        <div class="preview-image-box">
+          <img [src]="imagePreviewUrl" alt="Bill Preview" class="preview-img" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Statement Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'text'">
+      <div class="form-group">
+        <label for="statementText">Paste your bill text, receipt details, or bank SMS notification:</label>
+        <textarea
+          id="statementText"
+          rows="4"
+          [(ngModel)]="statementText"
+          placeholder="e.g. Paid Rs 450 at Starbucks on 2026-08-20 for 1 Caramel Macchiato and 1 Croissant. Invoice #4891"
+        ></textarea>
+      </div>
+
+      <!-- Quick sample prompts -->
+      <div class="sample-chips">
+        <span class="sample-label">Try a quick example:</span>
+        <button
+          type="button"
+          class="chip"
+          (click)="setSampleStatement('Starbucks Coffee ₹350.00 for Iced Latte and Blueberry Muffin on 2026-08-20')"
+        >
+          ☕ Starbucks ₹350 (Food)
+        </button>
+        <button
+          type="button"
+          class="chip"
+          (click)="setSampleStatement('Electricity Bill payment of ₹1,450.00 to BESCOM for August 2026')"
+        >
+          ⚡ Electricity ₹1450 (Bills)
+        </button>
+        <button
+          type="button"
+          class="chip"
+          (click)="setSampleStatement('Uber Trip receipt: ₹280.00 from Airport to Downtown on 2026-08-19')"
+        >
+          🚖 Uber Trip ₹280 (Transport)
+        </button>
+      </div>
+    </div>
+
+    <!-- Scan Action CTA -->
+    <div class="scan-action-bar">
+      <button
+        type="button"
+        class="btn btn-primary btn-lg scan-cta-btn"
+        (click)="startScan()"
+        [disabled]="scanning || (activeTab === 'image' && !selectedFile) || (activeTab === 'text' && !statementText.trim())"
+      >
+        <span *ngIf="!scanning">✨ Scan & Categorize with Gemini AI</span>
+        <span *ngIf="scanning" class="scanning-spinner">
+          <span class="spinner"></span> {{ scanProgressText }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Review, Edit & Submit Section (Shown when AI returns results) -->
+  <div class="card review-card" *ngIf="scanSuccess && aiResponse">
+    <!-- AI Result Banner -->
+    <div class="ai-insight-banner">
+      <div class="insight-header">
+        <span class="ai-badge">🤖 Gemini AI Analysis</span>
+        <span class="category-badge-pill">
+          Suggested Category: <strong>{{ aiResponse.categoryName }}</strong> ({{ aiResponse.type }})
+        </span>
+      </div>
+      <p class="ai-summary-note">💡 <em>{{ aiResponse.rawSummary }}</em></p>
+    </div>
+
+    <div class="review-intro">
+      <h3>Review & Edit Transaction</h3>
+      <p class="text-muted">
+        Verify the extracted details below. You can freely edit any field before submitting to your records.
+      </p>
+    </div>
+
+    <!-- Review & Edit Form -->
+    <form [formGroup]="reviewForm" (ngSubmit)="onSubmitTransaction()">
+      <!-- Transaction Type -->
+      <div class="form-group">
+        <label>Transaction Type <span class="required">*</span></label>
+        <div class="type-selector">
+          <label class="radio-label">
+            <input
+              type="radio"
+              value="EXPENSE"
+              formControlName="type"
+              (change)="onTypeChange()"
+            />
+            <span class="radio-text">Expense</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              value="INCOME"
+              formControlName="type"
+              (change)="onTypeChange()"
+            />
+            <span class="radio-text">Income</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Title & Amount in Row -->
+      <div class="form-row">
+        <!-- Title -->
+        <div class="form-group flex-1">
+          <label for="reviewTitle">Merchant / Title <span class="required">*</span></label>
+          <input
+            type="text"
+            id="reviewTitle"
+            formControlName="title"
+            placeholder="e.g. Starbucks, Electricity Bill"
+            [class.is-invalid]="isFieldInvalid('title')"
+          />
+          <div *ngIf="isFieldInvalid('title')" class="error-text">
+            <span>Title is required (min 2 chars).</span>
+          </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="form-group flex-1">
+          <label for="reviewAmount">Amount (₹) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="reviewAmount"
+            formControlName="amount"
+            step="0.01"
+            min="0.01"
+            placeholder="e.g. 450.00"
+            [class.is-invalid]="isFieldInvalid('amount')"
+          />
+          <div *ngIf="isFieldInvalid('amount')" class="error-text">
+            <span>Valid positive amount is required.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category & Date in Row -->
+      <div class="form-row">
+        <!-- Category Dropdown -->
+        <div class="form-group flex-1">
+          <label for="reviewCategory">Category <span class="required">*</span></label>
+          <select
+            id="reviewCategory"
+            formControlName="categoryId"
+            [class.is-invalid]="isFieldInvalid('categoryId')"
+          >
+            <option value="">Select Category</option>
+            <option *ngFor="let cat of filteredCategories" [value]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('categoryId')" class="error-text">
+            <span>Category is required.</span>
+          </div>
+        </div>
+
+        <!-- Date Picker -->
+        <div class="form-group flex-1">
+          <label for="reviewDate">Transaction Date <span class="required">*</span></label>
+          <input
+            type="date"
+            id="reviewDate"
+            formControlName="transactionDate"
+            [class.is-invalid]="isFieldInvalid('transactionDate')"
+          />
+          <div *ngIf="isFieldInvalid('transactionDate')" class="error-text">
+            <span>Date is required.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description / Items -->
+      <div class="form-group">
+        <label for="reviewDescription">Description / Items Extracted</label>
+        <textarea
+          id="reviewDescription"
+          rows="2"
+          formControlName="description"
+          placeholder="Itemized summary or notes..."
+          [class.is-invalid]="isFieldInvalid('description')"
+        ></textarea>
+      </div>
+
+      <!-- Submit & Action Buttons -->
+      <div class="form-actions review-actions">
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="saving">
+          <span *ngIf="!saving">💾 Save & Add to Transactions</span>
+          <span *ngIf="saving">Saving to Database...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetScan()" [disabled]="saving">
+          🔄 Scan Another Bill
+        </button>
+        <a routerLink="/transactions" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

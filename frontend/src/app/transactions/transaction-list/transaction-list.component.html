@@ -1,0 +1,107 @@
+<div class="container">
+  <div class="flex-between mb-4">
+    <div>
+      <h1>Transactions</h1>
+      <p class="subtitle">Manage all your income and expenses</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/ai-scanner" class="btn btn-secondary ai-btn">✨ Scan Bill with AI</a>
+      <a routerLink="/transactions/add" class="btn btn-primary">+ Add Transaction</a>
+    </div>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Filters Card -->
+  <div class="card filter-card">
+    <div class="filter-grid">
+      <!-- Search -->
+      <div class="form-group mb-0">
+        <label for="search">Search</label>
+        <input
+          type="text"
+          id="search"
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          placeholder="Search by title or description..."
+        />
+      </div>
+
+      <!-- Type Filter -->
+      <div class="form-group mb-0">
+        <label for="typeFilter">Type</label>
+        <select id="typeFilter" [(ngModel)]="selectedType" (change)="applyFilters()">
+          <option value="ALL">All Types</option>
+          <option value="INCOME">Income</option>
+          <option value="EXPENSE">Expense</option>
+        </select>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="form-group mb-0">
+        <label for="categoryFilter">Category</label>
+        <select id="categoryFilter" [(ngModel)]="selectedCategoryId" (change)="applyFilters()">
+          <option value="ALL">All Categories</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">
+            {{ cat.name }} ({{ cat.type }})
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="card">
+    <div *ngIf="loading" class="alert alert-info">
+      Loading transactions...
+    </div>
+
+    <div *ngIf="!loading && filteredTransactions.length === 0" class="empty-state">
+      <p>No transactions match the selected criteria.</p>
+    </div>
+
+    <div *ngIf="!loading && filteredTransactions.length > 0" class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of filteredTransactions">
+            <td><strong>{{ t.title }}</strong></td>
+            <td>{{ t.categoryName }}</td>
+            <td [ngClass]="{'text-success': t.type === 'INCOME', 'text-danger': t.type === 'EXPENSE'}">
+              <strong>{{ t.type === 'INCOME' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}</strong>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{'badge-income': t.type === 'INCOME', 'badge-expense': t.type === 'EXPENSE'}">
+                {{ t.type }}
+              </span>
+            </td>
+            <td>{{ t.transactionDate }}</td>
+            <td class="desc-cell">{{ t.description || '-' }}</td>
+            <td style="text-align: right;">
+              <div class="action-buttons">
+                <a [routerLink]="['/transactions/edit', t.id]" class="btn btn-secondary btn-sm">Edit</a>
+                <button class="btn btn-danger btn-sm" (click)="onDelete(t.id)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

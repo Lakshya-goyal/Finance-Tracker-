@@ -1,0 +1,107 @@
+.mb-4 {
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.budget-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+@media (max-width: 800px) {
+  .budget-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.budget-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.budget-item-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.period-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.budget-stats {
+  display: flex;
+  justify-content: space-between;
+  margin: 14px 0 8px 0;
+  background-color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.stat-val {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.text-success {
+  color: #16a34a;
+}
+
+.text-danger {
+  color: #dc2626;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.progress-info {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.action-buttons {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: #64748b;
+}

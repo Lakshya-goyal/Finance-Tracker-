@@ -1,0 +1,54 @@
+<div class="auth-wrapper">
+  <div class="card auth-card">
+    <div class="auth-header">
+      <h2>Finance Tracker</h2>
+      <p class="subtitle">Welcome back! Please enter your details.</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <!-- Email Address Field -->
+      <div class="form-group">
+        <label for="email">Email Address <span class="required">*</span></label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="e.g. john@example.com"
+          [class.is-invalid]="isFieldInvalid('email')"
+        />
+        <div *ngIf="isFieldInvalid('email')" class="error-text">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email address is required.</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address.</span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password <span class="required">*</span></label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          [class.is-invalid]="isFieldInvalid('password')"
+        />
+        <div *ngIf="isFieldInvalid('password')" class="error-text">
+          <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+        <span *ngIf="!loading">Login</span>
+        <span *ngIf="loading">Logging in...</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a routerLink="/register">Register here</a></p>
+    </div>
+  </div>
+</div>

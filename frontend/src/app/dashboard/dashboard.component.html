@@ -1,0 +1,123 @@
+<div class="container">
+  <div class="flex-between mb-4">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Summary of your financial activity</p>
+    </div>
+    <a routerLink="/transactions/add" class="btn btn-primary">+ Add Transaction</a>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info">
+    Loading...
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading && dashboardData">
+    <!-- 4 Summary Metric Cards -->
+    <div class="metrics-grid">
+      <div class="card metric-card">
+        <span class="metric-label">Total Balance</span>
+        <h2 class="metric-value" [ngClass]="{'text-success': dashboardData.balance >= 0, 'text-danger': dashboardData.balance < 0}">
+          ₹{{ dashboardData.balance | number:'1.2-2' }}
+        </h2>
+        <span class="metric-desc">Net savings</span>
+      </div>
+
+      <div class="card metric-card">
+        <span class="metric-label">Total Income</span>
+        <h2 class="metric-value text-success">
+          ₹{{ dashboardData.totalIncome | number:'1.2-2' }}
+        </h2>
+        <span class="metric-desc">All time earnings</span>
+      </div>
+
+      <div class="card metric-card">
+        <span class="metric-label">Total Expenses</span>
+        <h2 class="metric-value text-danger">
+          ₹{{ dashboardData.totalExpenses | number:'1.2-2' }}
+        </h2>
+        <span class="metric-desc">All time spent</span>
+      </div>
+
+      <div class="card metric-card">
+        <span class="metric-label">This Month</span>
+        <h2 class="metric-value text-primary">
+          ₹{{ dashboardData.thisMonthExpenses | number:'1.2-2' }}
+        </h2>
+        <span class="metric-desc">Spent this current month</span>
+      </div>
+    </div>
+
+    <!-- Main Content: Recent Transactions and Category Breakdown -->
+    <div class="dashboard-grid">
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <h2>Recent Transactions</h2>
+          <a routerLink="/transactions" class="link-small">View All →</a>
+        </div>
+
+        <div *ngIf="dashboardData.recentTransactions.length === 0" class="empty-state">
+          <p>No transactions yet.</p>
+          <a routerLink="/transactions/add" class="btn btn-sm btn-primary mt-2">Add your first transaction</a>
+        </div>
+
+        <div *ngIf="dashboardData.recentTransactions.length > 0" class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of dashboardData.recentTransactions">
+                <td><strong>{{ t.title }}</strong></td>
+                <td>{{ t.categoryName }}</td>
+                <td [ngClass]="{'text-success': t.type === 'INCOME', 'text-danger': t.type === 'EXPENSE'}">
+                  {{ t.type === 'INCOME' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="{'badge-income': t.type === 'INCOME', 'badge-expense': t.type === 'EXPENSE'}">
+                    {{ t.type }}
+                  </span>
+                </td>
+                <td>{{ t.transactionDate }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Expenses by Category -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <h2>Expenses by Category</h2>
+          <a routerLink="/categories" class="link-small">Manage →</a>
+        </div>
+
+        <div *ngIf="dashboardData.categoryExpenses.length === 0" class="empty-state">
+          <p>No expense data recorded yet.</p>
+        </div>
+
+        <div *ngIf="dashboardData.categoryExpenses.length > 0" class="category-breakdown">
+          <div *ngFor="let cat of dashboardData.categoryExpenses" class="category-item">
+            <div class="flex-between">
+              <span class="category-name"><strong>{{ cat.categoryName }}</strong></span>
+              <span>₹{{ cat.amount | number:'1.2-2' }} <small class="text-muted">({{ cat.percentage | number:'1.1-1' }}%)</small></span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" [style.width.%]="cat.percentage"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

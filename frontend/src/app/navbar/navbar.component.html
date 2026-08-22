@@ -1,0 +1,18 @@
+<nav class="navbar" *ngIf="isLoggedIn()">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/dashboard">Finance Tracker</a>
+    </div>
+    <div class="navbar-menu">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/transactions" routerLinkActive="active">Transactions</a>
+      <a routerLink="/ai-scanner" routerLinkActive="active" class="ai-nav-link">✨ AI Bill Scanner</a>
+      <a routerLink="/categories" routerLinkActive="active">Categories</a>
+      <a routerLink="/budgets" routerLinkActive="active">Budgets</a>
+    </div>
+    <div class="navbar-user">
+      <span class="user-greeting" *ngIf="currentUser">Hello, {{ currentUser.name }}</span>
+      <button class="btn btn-secondary btn-sm" (click)="onLogout()">Logout</button>
+    </div>
+  </div>
+</nav>

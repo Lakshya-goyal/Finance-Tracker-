@@ -1,0 +1,139 @@
+<div class="container form-container">
+  <div class="card">
+    <div class="flex-between mb-3">
+      <h2>{{ isEditMode ? 'Edit Transaction' : 'Add New Transaction' }}</h2>
+      <a routerLink="/transactions" class="btn btn-secondary btn-sm">← Back to List</a>
+    </div>
+
+    <div class="ai-helper-banner mb-3" *ngIf="!isEditMode">
+      <div class="ai-helper-text">
+        <span class="ai-helper-icon">✨</span>
+        <div>
+          <strong>Have a receipt or bill?</strong>
+          <p>Scan it with Gemini AI to auto-fill this form instantly.</p>
+        </div>
+      </div>
+      <a routerLink="/ai-scanner" class="btn btn-sm btn-ai">✨ Scan with AI</a>
+    </div>
+
+    <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
+      <!-- Transaction Type -->
+      <div class="form-group">
+        <label>Transaction Type <span class="required">*</span></label>
+        <div class="type-selector">
+          <label class="radio-label">
+            <input
+              type="radio"
+              value="EXPENSE"
+              formControlName="type"
+              (change)="onTypeChange()"
+            />
+            <span class="radio-text">Expense</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              value="INCOME"
+              formControlName="type"
+              (change)="onTypeChange()"
+            />
+            <span class="radio-text">Income</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title">Title <span class="required">*</span></label>
+        <input
+          type="text"
+          id="title"
+          formControlName="title"
+          placeholder="e.g. Grocery shopping, Monthly Salary"
+          [class.is-invalid]="isFieldInvalid('title')"
+        />
+        <div *ngIf="isFieldInvalid('title')" class="error-text">
+          <span *ngIf="transactionForm.get('title')?.errors?.['required']">Title is required.</span>
+          <span *ngIf="transactionForm.get('title')?.errors?.['minlength']">Title must be at least 2 characters long.</span>
+          <span *ngIf="transactionForm.get('title')?.errors?.['maxlength']">Title cannot exceed 100 characters.</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Amount -->
+        <div class="form-group">
+          <label for="amount">Amount (₹) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="amount"
+            formControlName="amount"
+            step="0.01"
+            min="0.01"
+            placeholder="e.g. 250.00"
+            [class.is-invalid]="isFieldInvalid('amount')"
+          />
+          <div *ngIf="isFieldInvalid('amount')" class="error-text">
+            <span *ngIf="transactionForm.get('amount')?.errors?.['required']">Amount is required.</span>
+            <span *ngIf="transactionForm.get('amount')?.errors?.['min']">Amount must be greater than 0 (minimum 0.01).</span>
+            <span *ngIf="transactionForm.get('amount')?.errors?.['max']">Amount cannot exceed ₹100,000,000.</span>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label for="categoryId">Category <span class="required">*</span></label>
+          <select
+            id="categoryId"
+            formControlName="categoryId"
+            [class.is-invalid]="isFieldInvalid('categoryId')"
+          >
+            <option value="">Select a category</option>
+            <option *ngFor="let cat of filteredCategories" [value]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('categoryId')" class="error-text">
+            <span>Please select a category.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Date -->
+      <div class="form-group">
+        <label for="transactionDate">Transaction Date <span class="required">*</span></label>
+        <input
+          type="date"
+          id="transactionDate"
+          formControlName="transactionDate"
+          [class.is-invalid]="isFieldInvalid('transactionDate')"
+        />
+        <div *ngIf="isFieldInvalid('transactionDate')" class="error-text">
+          <span>Transaction date is required.</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description">Description (Optional)</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          placeholder="Additional notes about this transaction (max 500 characters)..."
+          [class.is-invalid]="isFieldInvalid('description')"
+        ></textarea>
+        <div *ngIf="isFieldInvalid('description')" class="error-text">
+          <span>Description cannot exceed 500 characters.</span>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          <span *ngIf="!loading">{{ isEditMode ? 'Update Transaction' : 'Save Transaction' }}</span>
+          <span *ngIf="loading">Saving...</span>
+        </button>
+        <a routerLink="/transactions" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
