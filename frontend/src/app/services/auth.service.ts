@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -8,7 +9,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/use
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = environment.apiUrl + '/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -62,3 +63,4 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 }
+

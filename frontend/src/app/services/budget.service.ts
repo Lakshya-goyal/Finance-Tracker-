@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,7 +8,7 @@ import { Budget, BudgetRequest } from '../models/budget.model';
   providedIn: 'root'
 })
 export class BudgetService {
-  private apiUrl = 'http://localhost:8080/api/budgets';
+  private apiUrl = environment.apiUrl + '/budgets';
 
   constructor(private http: HttpClient) {}
 
@@ -27,3 +28,4 @@ export class BudgetService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
+

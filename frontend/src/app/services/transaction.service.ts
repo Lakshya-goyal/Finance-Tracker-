@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,7 +8,7 @@ import { Transaction, TransactionRequest } from '../models/transaction.model';
   providedIn: 'root'
 })
 export class TransactionService {
-  private apiUrl = 'http://localhost:8080/api/transactions';
+  private apiUrl = environment.apiUrl + '/transactions';
 
   constructor(private http: HttpClient) {}
 
@@ -31,3 +32,4 @@ export class TransactionService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
+
