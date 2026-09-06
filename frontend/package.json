@@ -25,7 +25,6 @@
     "@angular-devkit/build-angular": "^18.1.0",
     "@angular/cli": "^18.1.0",
     "@angular/compiler-cli": "^18.1.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.62.5",
     "typescript": "~5.4.2"
   }
 }
