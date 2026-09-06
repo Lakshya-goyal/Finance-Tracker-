@@ -1,6 +1,6 @@
 # Simple Beginner Full-Stack Finance Tracker
 
-A clean, functional, and beginner-friendly **Personal Finance Tracker** built with **Angular**, **Spring Boot**, and **MySQL**.
+A clean, functional, and full-stack **Personal Finance Tracker** built with **Angular**, **Spring Boot**, **MySQL**, and **Google Gemini AI**.
 
 ---
 
