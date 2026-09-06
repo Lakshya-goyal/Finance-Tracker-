@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install --include=dev && node ./node_modules/@angular/cli/bin/ng.js build",
+  "buildCommand": "cd frontend && npm install && ng build",
   "outputDirectory": "frontend/dist/finance-tracker-frontend/browser",
   "rewrites": [
     {
